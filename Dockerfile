@@ -33,8 +33,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
+ENV PUPPETEER_CACHE_DIR=/opt/puppeteer-cache
+
 COPY package.json package-lock.json ./
 RUN npm ci
+
+RUN CHROME_BIN=$(find /opt/puppeteer-cache -name "chrome" -type f -path "*/chrome-linux64/*" | head -1) && \
+    ln -sf "$CHROME_BIN" /usr/bin/google-chrome
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
 
 COPY . .
 
