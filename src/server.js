@@ -78,8 +78,8 @@ app.post("/api/run-reminder", async (req, res) => {
 });
 
 function start() {
-  return app.listen(port, () => {
-    console.log(`[Server] Dashboard running at http://localhost:${port}`);
+  return app.listen(port, "0.0.0.0", () => {
+    console.log(`[Server] Dashboard running on port ${port}`);
   });
 }
 

@@ -1,17 +1,23 @@
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const EventEmitter = require("events");
+const path = require("path");
 
 const events = new EventEmitter();
 let qrCode = null;
 let ready = false;
 let client = null;
 
+const authDataPath = process.env.AUTH_DATA_PATH
+  ? path.resolve(process.env.AUTH_DATA_PATH)
+  : path.join(__dirname, "..");
+
 function getClient() {
   if (!client) {
     client = new Client({
-      authStrategy: new LocalAuth(),
+      authStrategy: new LocalAuth({ dataPath: authDataPath }),
       puppeteer: {
         headless: true,
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
         args: [
           "--no-sandbox",
           "--disable-setuid-sandbox",

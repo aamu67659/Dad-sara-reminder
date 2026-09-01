@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: dad-remembrance-reminder
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    dockerfilePath: ./Dockerfile
+    disk:
+      name: wauth-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: AUTH_DATA_PATH
+        value: /data
+      - key: PORT
+        value: 10000
+      - key: TZ
+        value: Africa/Lagos
+      - key: SEND_TIME
+        value: 0 9
+      - key: FAMILY_CONTACTS
+        sync: false
