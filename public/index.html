@@ -155,6 +155,9 @@
         if (data.whatsappReady) {
           statusEl.innerHTML = '<div class="status-row"><div class="dot green"></div><span>WhatsApp connected and ready</span></div>';
           document.getElementById('qr-section').style.display = 'none';
+        } else if (data.authenticating) {
+          statusEl.innerHTML = '<div class="status-row"><div class="dot orange"></div><span>Authenticated - loading WhatsApp Web, please wait...</span></div>';
+          document.getElementById('qr-section').style.display = 'none';
         } else if (data.hasQr) {
           statusEl.innerHTML = '<div class="status-row"><div class="dot orange"></div><span>Waiting for QR scan...</span></div>';
           loadQr();

@@ -5,6 +5,7 @@ const path = require("path");
 const events = new EventEmitter();
 let qrCode = null;
 let ready = false;
+let authenticating = false;
 let client = null;
 
 const authDataPath = process.env.AUTH_DATA_PATH
@@ -25,7 +26,20 @@ function getClient() {
           "--disable-accelerated-2d-canvas",
           "--no-first-run",
           "--no-zygote",
+          "--single-process",
           "--disable-gpu",
+          "--disable-extensions",
+          "--disable-background-networking",
+          "--disable-background-timer-throttling",
+          "--disable-backgrounding-occluded-windows",
+          "--disable-breakpad",
+          "--disable-default-apps",
+          "--disable-sync",
+          "--disable-translate",
+          "--metrics-recording-only",
+          "--no-default-browser-check",
+          "--mute-audio",
+          "--disable-features=site-per-process,NetworkService",
         ],
       },
     });
@@ -33,19 +47,24 @@ function getClient() {
     client.on("qr", (qr) => {
       qrCode = qr;
       ready = false;
+      authenticating = false;
       events.emit("qr", qr);
       console.log("[WhatsApp] QR code generated - scan it in the dashboard");
     });
 
     client.on("ready", () => {
       ready = true;
+      authenticating = false;
       qrCode = null;
       events.emit("ready");
       console.log("[WhatsApp] Client is ready and connected");
     });
 
     client.on("authenticated", () => {
-      console.log("[WhatsApp] Authenticated successfully");
+      authenticating = true;
+      qrCode = null;
+      events.emit("authenticated");
+      console.log("[WhatsApp] Authenticated successfully - loading...");
     });
 
     client.on("auth_failure", (msg) => {
@@ -56,6 +75,7 @@ function getClient() {
 
     client.on("disconnected", (reason) => {
       ready = false;
+      authenticating = false;
       qrCode = null;
       client = null;
       events.emit("disconnected", reason);
@@ -96,7 +116,7 @@ async function sendToSingle(number, message) {
 }
 
 function getStatus() {
-  return { ready, hasQr: !!qrCode, qrCode };
+  return { ready, authenticating, hasQr: !!qrCode, qrCode };
 }
 
 function getEvents() {
