@@ -25,7 +25,6 @@ function getClient() {
           "--disable-accelerated-2d-canvas",
           "--no-first-run",
           "--no-zygote",
-          "--single-process",
           "--disable-gpu",
         ],
       },
@@ -57,8 +56,11 @@ function getClient() {
 
     client.on("disconnected", (reason) => {
       ready = false;
+      qrCode = null;
+      client = null;
       events.emit("disconnected", reason);
-      console.log("[WhatsApp] Client disconnected:", reason);
+      console.log("[WhatsApp] Client disconnected:", reason, "- will reinitialize in 5s");
+      setTimeout(() => getClient(), 5000);
     });
 
     client.initialize();
