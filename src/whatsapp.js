@@ -38,12 +38,18 @@ function getClient() {
       console.log("[WhatsApp] QR code generated - scan it in the dashboard");
     });
 
-    client.on("ready", () => {
+    client.on("ready", async () => {
       ready = true;
       authenticating = false;
       qrCode = null;
       events.emit("ready");
       console.log("[WhatsApp] Client is ready and connected");
+      try {
+        await client.setDisplayName("Adewale Arogundade Remembrance");
+        console.log("[WhatsApp] Display name set");
+      } catch (err) {
+        console.warn("[WhatsApp] Could not set display name:", err.message);
+      }
     });
 
     client.on("authenticated", () => {
