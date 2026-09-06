@@ -9,7 +9,7 @@ const sendTime = process.env.SEND_TIME || "0 9";
 const timezone = process.env.TZ || "Africa/Lagos";
 const port = parseInt(process.env.PORT || "3000", 10);
 
-const anniversary = { month: 9, day: 4 };
+const anniversary = { month: 10, day: 4 };
 
 const reminderStart = { month: 9, day: 2 };
 
