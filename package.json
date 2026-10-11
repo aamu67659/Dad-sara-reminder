@@ -7,7 +7,6 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "test": "node --test src/messages.test.js",
-    "test": "node --test src/messages.test.js",
     "postinstall": "npx puppeteer browsers install chrome"
   },
   "dependencies": {

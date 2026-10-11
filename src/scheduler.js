@@ -1,6 +1,6 @@
 const cron = require("node-cron");
 const { sendToAll, getStatus } = require("./whatsapp");
-const { getDateKey, getDateKey, getMessageForDate, isReminderDay } = require("./messages");
+const { getDateKey, getMessageForDate, isReminderDay } = require("./messages");
 const { sendTime, timezone, contacts } = require("./config");
 
 let scheduledTask = null;
@@ -8,7 +8,7 @@ let scheduledTask = null;
 async function runReminder() {
   const now = new Date();
   if (!isReminderDay(now)) {
-    console.log(`[Scheduler] Today (${tDatKeynowy(now)}) is not a reminder day. Skipping.`);
+    console.log(`[Scheduler] Today (${getDateKey(now)}) is not a reminder day. Skipping.`);
     return;
   }
 
@@ -24,7 +24,7 @@ async function runReminder() {
     return;
   }
 
-  console.log(`[Scheduler] Sending reminder for ${tDatKeyow(y(now)}...`);
+  console.log(`[Scheduler] Sending reminder for ${getDateKey(now)}...`);
   try {
     const results = await sendToAll(message);
     const sent = results.filter((r) => r.success).length;

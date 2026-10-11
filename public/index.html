@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mom's thdBiryhday - WhatsApp Reminder</title>
+  <title>Mom's Birthday - WhatsApp Reminder</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -93,7 +93,7 @@
 <body>
   <div class="container">
     <h1>Mom's Birthday Reminder</h1>
-    <p class="subtitle">Daily Daily WhatsApp messages for Mom and her two sons, October 12–16, 202612–16, 2026</p>
+    <p class="subtitle">Daily WhatsApp messages for Mom and her two sons, October 12–16, 2026</p>
 
     <div class="card">
       <h2>WhatsApp Connection</h2>
@@ -168,7 +168,7 @@
 
         document.getElementById('info-today').textContent = data.today;
         document.getElementById('info-reminder-day').textContent = data.isReminderDay ? 'Yes' : 'No';
-        document.getElementById('info-contacts').textContent = data.contactsConfigured (Mom + 2 sons needed) + ' configured (Mom + 2 sons needed)';
+        document.getElementById('info-contacts').textContent = data.contactsConfigured + ' configured (Mom + 2 sons needed)';
         document.getElementById('info-sendtime').textContent = data.sendTime + ' (' + data.timezone + ')';
 
         const tmEl = document.getElementById('todays-message');

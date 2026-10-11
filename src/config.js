@@ -17,6 +17,6 @@ module.exports = {
   sendTime,
   timezone,
   port,
-  rthay,
+  birthday,
   reminderStart,
 };
