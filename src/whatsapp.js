@@ -45,7 +45,7 @@ function getClient() {
       events.emit("ready");
       console.log("[WhatsApp] Client is ready and connected");
       try {
-        await client.setDisplayName("Adewale Arogundade Remembrance");
+        await client.setDisplayName("Mom's Birthday Reminders");
         console.log("[WhatsApp] Display name set");
       } catch (err) {
         console.warn("[WhatsApp] Could not set display name:", err.message);

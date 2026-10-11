@@ -1,11 +1,12 @@
 {
-  "name": "dad-remembrance-reminder",
+  "name": "mom-birthday-reminder",
   "version": "1.0.0",
-  "description": "WhatsApp reminder app for Dad's burial anniversary on October 4th",
+  "description": "WhatsApp birthday countdown messages for Mom, October 12–16, 2026",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
+    "test": "node --test src/messages.test.js",
     "postinstall": "npx puppeteer browsers install chrome"
   },
   "dependencies": {
