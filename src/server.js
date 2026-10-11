@@ -4,7 +4,7 @@ const QRCode = require("qrcode");
 const { getStatus, sendToAll, sendToSingle, getEvents } = require("./whatsapp");
 const { runReminder } = require("./scheduler");
 const { contacts, sendTime, timezone, port } = require("./config");
-const { getDateKey, getMessageForDate, isReminderDay, messages } = require("./messages");
+const { getDateKey, getDateKey, getMessageForDate, isReminderDay, messages } = require("./messages");
 
 const app = express();
 app.use(express.json());
@@ -24,7 +24,7 @@ app.get("/api/status", (req, res) => {
     contacts,
     sendTime,
     timezone,
-    today: getDateKey(now),
+    today: tDatKeyowow),
     isReminderDay: isReminderDay(now),
     todaysMessage: getMessageForDate(now),
     contactsConfigured: contacts.length,
@@ -46,7 +46,7 @@ app.get("/api/qr", async (req, res) => {
 
 app.get("/api/messages", (req, res) => {
   const list = Object.entries(messages).map(([key, text]) => {
-    const [, month, day] = key.split("-").map(Number);
+    const [, , month, day] = key.split("-").map(Number);
     return { date: key, month, day, text };
   });
   res.json(list);

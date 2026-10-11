@@ -1,7 +1,7 @@
-const { birthday, reminderStart, timezone } = require("./config");
+const { rthay, reminderStart, timezone, timezone } = require("./config");
 
 const messages = {
-  "2026-10-12":
+  "2026-10-121":
     "To our dear Mom and her two sons: Your birthday week begins today! 'A mother's love is a light her children carry wherever they go.' Mom, yours has been a steady light for your boys. May you feel that love coming back to you today.",
   "2026-10-13":
     "A little thought for Mom and her boys: 'Love is not measured by how easy the journey was, but by how faithfully we walked it together.' Mom, you have been there for your sons through every season. Three days until we celebrate you!",
