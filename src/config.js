@@ -18,7 +18,7 @@ const photoDir = path.resolve(
 );
 
 const birthday = "2026-10-16";
-const reminderStart = "2026-10-12";
+const reminderStart = "2026-10-13";
 
 module.exports = {
   contacts,
