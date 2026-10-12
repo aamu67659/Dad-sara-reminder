@@ -3,403 +3,304 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mom's Birthday - WhatsApp Reminder</title>
+  <title>Mom's Birthday Reminder</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #1a1a2e;
-      color: #e0e0e0;
-      min-height: 100vh;
-      padding: 20px;
-    }
-    .container { max-width: 800px; margin: 0 auto; }
-    h1 { text-align: center; margin-bottom: 8px; font-size: 1.6rem; }
-    .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 0.9rem; }
-    .card {
-      background: #16213e;
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 20px;
-      border: 1px solid #0f3460;
-    }
-    .card h2 { font-size: 1.1rem; margin-bottom: 16px; color: #e94560; }
-    .status-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
-    .dot.green { background: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
-    .dot.orange { background: #f39c12; box-shadow: 0 0 8px #f39c12; }
-    .dot.red { background: #e74c3c; box-shadow: 0 0 8px #e74c3c; }
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
-    .info-item { background: #0d1b3e; padding: 12px; border-radius: 8px; }
-    .info-label { font-size: 0.75rem; color: #888; text-transform: uppercase; margin-bottom: 4px; }
-    .info-value { font-size: 0.95rem; word-break: break-all; }
-    .qr-container { text-align: center; }
-    .qr-container img { border-radius: 12px; background: #fff; padding: 12px; max-width: 300px; }
-    .qr-instructions { margin-top: 12px; color: #aaa; font-size: 0.85rem; line-height: 1.6; }
-    .btn {
-      background: #e94560;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background 0.2s;
-    }
-    .btn:hover { background: #c73650; }
-    .btn:disabled { background: #555; cursor: not-allowed; }
-    .btn.secondary { background: #0f3460; }
-    .btn.secondary:hover { background: #1a4a7a; }
-    .btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
-    .message-list { display: flex; flex-direction: column; gap: 8px; }
-    .message-item { background: #0d1b3e; padding: 12px; border-radius: 8px; font-size: 0.85rem; }
-    .message-date { color: #e94560; font-weight: bold; margin-bottom: 4px; }
-    .message-text { color: #ccc; line-height: 1.5; }
-    .message-item.today { border: 2px solid #e94560; }
-    .test-section { margin-top: 16px; }
-    .test-section input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #0f3460;
-      background: #0d1b3e;
-      color: #e0e0e0;
-      margin-bottom: 8px;
-      font-size: 0.85rem;
-    }
-    .test-section textarea {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #0f3460;
-      background: #0d1b3e;
-      color: #e0e0e0;
-      margin-bottom: 8px;
-      font-size: 0.85rem;
-      min-height: 60px;
-      resize: vertical;
-    }
-    .alert {
-      padding: 12px;
-      border-radius: 8px;
-      margin-top: 8px;
-      font-size: 0.85rem;
-    }
-    .alert.success { background: #0d3320; color: #2ecc71; }
-    .alert.error { background: #330d0d; color: #e74c3c; }
-    .refresh-note { text-align: center; color: #666; font-size: 0.8rem; margin-top: 20px; }
-    .pairing-code { font-size: 1.5rem; letter-spacing: 0.2em; font-weight: bold; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; background: #17192b; color: #e8eaf2; font: 16px/1.5 system-ui, sans-serif; }
+    main { max-width: 800px; margin: 0 auto; }
+    h1, .subtitle { text-align: center; }
+    h1 { margin-bottom: 4px; font-size: 1.7rem; }
+    h2 { margin: 0 0 16px; font-size: 1.15rem; color: #ff6883; }
+    h3 { font-size: 1rem; margin: 18px 0 8px; }
+    .subtitle, .help { color: #aeb4c7; }
+    .subtitle { margin: 0 0 28px; }
+    .help { font-size: 0.9rem; margin: 8px 0 16px; }
+    .card { background: #1b2845; border: 1px solid #29446e; border-radius: 12px; padding: 24px; margin: 18px 0; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .info { background: #11203d; padding: 12px; border-radius: 8px; word-wrap: break-word; }
+    .label { display: block; color: #aeb4c7; text-transform: uppercase; font-size: 0.75rem; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; background: #fbbf24; flex: none; }
+    .dot.ready { background: #34d399; }
+    .dot.error { background: #fb7185; }
+    input, textarea, button { font: inherit; }
+    input, textarea { width: 100%; display: block; padding: 11px; margin: 8px 0; background: #11203d; color: inherit; border: 1px solid #355584; border-radius: 7px; }
+    textarea { min-height: 68px; resize: vertical; }
+    button { cursor: pointer; background: #ed4767; color: white; border: 0; border-radius: 7px; padding: 10px 16px; }
+    button.secondary { background: #335c87; }
+    button:disabled { cursor: wait; opacity: 0.5; }
+    .alert { padding: 12px; border-radius: 7px; margin: 12px 0; background: #113a2a; color: #9ef3c8; }
+    .alert.error { background: #4b202d; color: #ffbec9; }
+    .code { font-size: 1.7rem; font-weight: bold; letter-spacing: 0.15em; word-break: break-all; }
+    #qr-section { text-align: center; margin: 18px 0; }
+    #qr-image { display: block; max-width: 100%; width: 300px; margin: auto; background: white; padding: 10px; border-radius: 8px; }
+    .message { background: #11203d; padding: 12px; border-radius: 8px; margin: 8px 0; }
+    .message.today { border: 2px solid #ed4767; }
+    .message strong { display: block; color: #ff6883; }
+    [hidden] { display: none !important; }
+    @media (max-width: 520px) { body { padding: 12px; } .card { padding: 16px; } .grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
-  <div class="container">
+  <main>
     <h1>Mom's Birthday Reminder</h1>
-    <p class="subtitle">Daily WhatsApp messages for Mom and her two sons, October 12–16, 2026</p>
+    <p class="subtitle">Daily WhatsApp messages, October 12–16, 2026</p>
 
-    <div class="card">
+    <section class="card">
       <h2>WhatsApp Connection</h2>
-      <div id="wa-status">
-        <div class="status-row">
-          <div class="dot orange"></div>
-          <span>Checking...</span>
-        </div>
+      <div class="row"><span id="status-dot" class="dot"></span><span id="wa-status" role="status">Checking connection...</span></div>
+      <p class="help">Enter your private access token from Render to link WhatsApp or send messages. It is held only in this browser tab.</p>
+      <input id="access-token" type="password" placeholder="Access token (PAIRING_TOKEN)" autocomplete="off" aria-label="Access token" />
+      <div id="connection-alert" role="alert" hidden></div>
+      <div id="qr-section" hidden>
+        <img id="qr-image" alt="WhatsApp linking QR code" />
+        <p class="help">WhatsApp on your phone → Linked devices → Link a device → Scan the code above.</p>
       </div>
-      <div id="qr-section" class="qr-container" style="display:none; margin-top:20px;">
-        <img id="qr-img" src="" alt="QR Code" />
-        <div class="qr-instructions">
-          Open WhatsApp on your phone > Settings > Linked Devices > Link a Device<br />
-          Then scan this QR code. The session will stay connected after that.
-        </div>
+      <div id="pairing-section">
+        <h3>Link with a phone number instead</h3>
+        <input id="pairing-number" type="tel" placeholder="WhatsApp number with country code, digits only" autocomplete="tel" aria-label="WhatsApp phone number" />
+        <button id="pairing-button" type="button">Get Pairing Code</button>
+        <div id="pairing-result" role="status" aria-live="polite" hidden></div>
+        <p class="help">On your phone: Linked devices → Link a device → Link with phone number instead. Enter the code shown here.</p>
       </div>
-      <div id="pairing-section" class="test-section">
-        <h2 style="font-size:1rem; color:#e94560; margin-bottom:8px;">Link without a QR code</h2>
-        <input type="tel" id="pairing-number" placeholder="WhatsApp number with country code (digits only)" autocomplete="tel" />
-        <input type="password" id="pairing-token" placeholder="Pairing token from Render settings" autocomplete="off" />
-        <button class="btn secondary" id="pairing-button" onclick="requestPairingCode()">Get Pairing Code</button>
-        <div id="pairing-result" role="status" aria-live="polite"></div>
-        <p class="qr-instructions">On your phone, open WhatsApp > Linked devices > Link a device > Link with phone number instead, then enter the code shown here.</p>
-      </div>
-    </div>
+    </section>
 
-    <div class="card">
+    <section class="card">
       <h2>Status</h2>
-      <div class="info-grid" id="info-grid">
-        <div class="info-item"><div class="info-label">Today</div><div class="info-value" id="info-today">-</div></div>
-        <div class="info-item"><div class="info-label">Reminder Day?</div><div class="info-value" id="info-reminder-day">-</div></div>
-        <div class="info-item"><div class="info-label">Contacts</div><div class="info-value" id="info-contacts">-</div></div>
-        <div class="info-item"><div class="info-label">Photos Available</div><div class="info-value" id="info-photos">-</div></div>
-        <div class="info-item"><div class="info-label">Send Time</div><div class="info-value" id="info-sendtime">-</div></div>
+      <div class="grid">
+        <div class="info"><span class="label">Today</span><span id="today">—</span></div>
+        <div class="info"><span class="label">Reminder day</span><span id="reminder-day">—</span></div>
+        <div class="info"><span class="label">Contacts</span><span id="contacts">—</span></div>
+        <div class="info"><span class="label">Photos available</span><span id="photos">—</span></div>
+        <div class="info"><span class="label">Send time</span><span id="send-time">—</span></div>
       </div>
-      <div id="todays-message" style="margin-top:12px;"></div>
-    </div>
+      <div id="todays-message" class="message" hidden></div>
+    </section>
 
-    <div class="card">
+    <section class="card">
       <h2>Upload Mom's Photos</h2>
-      <p class="qr-instructions">Choose JPG or PNG photos. They stay on the private Render disk and are not shown publicly.</p>
-      <div class="test-section">
-        <input type="password" id="upload-token" placeholder="Photo upload token from Render settings" autocomplete="off" />
-        <input type="file" id="upload-files" accept="image/jpeg,image/png" multiple />
-        <button class="btn" id="upload-button" onclick="uploadPhotos()">Upload Photos</button>
-      </div>
-      <div id="upload-alert"></div>
-    </div>
+      <p class="help">Choose JPG or PNG photos. Uploads require the separate photo token and are saved on the private disk.</p>
+      <input id="upload-token" type="password" placeholder="Photo upload token" autocomplete="off" aria-label="Photo upload token" />
+      <input id="upload-files" type="file" accept="image/jpeg,image/png" multiple aria-label="Choose photos" />
+      <button id="upload-button" type="button">Upload Photos</button>
+      <div id="upload-alert" role="status" hidden></div>
+    </section>
 
-    <div class="card">
+    <section class="card">
       <h2>Actions</h2>
-      <div class="btn-row">
-        <button class="btn" onclick="runReminder()">Run Today's Reminder Now</button>
-        <button class="btn secondary" onclick="refresh()">Refresh Status</button>
+      <div class="row">
+        <button id="reminder-button" type="button">Run Today's Reminder</button>
+        <button id="refresh-button" class="secondary" type="button">Refresh Status</button>
       </div>
-      <div id="action-alert"></div>
-      <div class="test-section">
-        <h2 style="font-size:1rem; color:#e94560; margin-bottom:8px;">Send Test Message</h2>
-        <input type="text" id="test-number" placeholder="Phone number (e.g. 2348012345678) - leave empty to send to all" />
-        <textarea id="test-message" placeholder="Custom message - leave empty for default test text"></textarea>
-        <button class="btn" onclick="sendTest()">Send Test</button>
-      </div>
-    </div>
+      <h3>Send a Test Message</h3>
+      <input id="test-number" type="tel" placeholder="Phone number (leave blank for all configured contacts)" aria-label="Test message phone number" />
+      <textarea id="test-message" placeholder="Custom message (optional)" aria-label="Test message"></textarea>
+      <button id="test-button" type="button">Send Test</button>
+      <div id="action-alert" role="status" hidden></div>
+    </section>
 
-    <div class="card">
+    <section class="card">
       <h2>Birthday Countdown (Oct 12–16, 2026)</h2>
-      <div class="message-list" id="message-list">Loading...</div>
-    </div>
-
-    <p class="refresh-note">Dashboard auto-refreshes every 10 seconds</p>
-  </div>
-
+      <div id="message-list">Loading messages...</div>
+    </section>
+    <p class="help" style="text-align:center;">Dashboard refreshes every 10 seconds</p>
+  </main>
   <script>
-    let qrRequestId = 0;
-    let pairingActive = false;
+    const el = (id) => document.getElementById(id);
+    let polling = false;
+    let qrRequest = 0;
+
+    async function api(url, options = {}) {
+      const response = await fetch(url, { cache: 'no-store', ...options });
+      if (!response.headers.get('content-type')?.includes('application/json')) {
+        throw new Error('The service returned HTTP ' + response.status + ' instead of JSON. Render may be restarting; check its logs.');
+      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Request failed (HTTP ' + response.status + ')');
+      return data;
+    }
+
+    function accessHeaders() {
+      return { 'X-Pairing-Token': el('access-token').value.trim() };
+    }
+
+    function alert(id, message, error = false) {
+      const target = el(id);
+      target.hidden = !message;
+      target.className = 'alert' + (error ? ' error' : '');
+      target.textContent = message || '';
+    }
+
+    function showCode(code) {
+      const target = el('pairing-result');
+      target.hidden = false;
+      target.className = 'alert';
+      target.replaceChildren();
+      const label = document.createElement('span');
+      label.textContent = 'Enter this code on your phone: ';
+      const value = document.createElement('span');
+      value.className = 'code';
+      value.textContent = code;
+      target.append(label, value);
+    }
 
     async function refresh() {
+      if (polling) return;
+      polling = true;
       try {
-        const res = await fetch('/api/status');
-        const data = await res.json();
-        const statusEl = document.getElementById('wa-status');
-        const requestId = ++qrRequestId;
-        document.getElementById('pairing-section').style.display = data.whatsappReady || data.authenticating ? 'none' : 'block';
-        if (data.whatsappReady) {
-          pairingActive = false;
-          document.getElementById('pairing-result').textContent = '';
-          document.getElementById('pairing-token').value = '';
-          statusEl.innerHTML = '<div class="status-row"><div class="dot green"></div><span>WhatsApp connected and ready</span></div>';
-          document.getElementById('qr-section').style.display = 'none';
-        } else if (data.authenticating) {
-          pairingActive = false;
-          document.getElementById('pairing-result').textContent = '';
-          document.getElementById('pairing-token').value = '';
-          statusEl.innerHTML = '<div class="status-row"><div class="dot orange"></div><span>Authenticated - loading WhatsApp Web, please wait...</span></div>';
-          document.getElementById('qr-section').style.display = 'none';
-        } else if (data.connectionError && !data.hasQr) {
-          pairingActive = false;
-          document.getElementById('pairing-result').textContent = '';
-          statusEl.innerHTML = '<div class="status-row"><div class="dot red"></div><span>' + escapeHtml(data.connectionError) + '</span></div>';
-          document.getElementById('qr-section').style.display = 'none';
-        } else if (pairingActive) {
-          statusEl.innerHTML = '<div class="status-row"><div class="dot orange"></div><span>Waiting for phone pairing...</span></div>';
-          document.getElementById('qr-section').style.display = 'none';
-          loadPairingCode();
-        } else if (data.hasQr) {
-          statusEl.innerHTML = '<div class="status-row"><div class="dot orange"></div><span>Waiting for QR scan or phone pairing...</span></div>';
-          loadQr(requestId);
-        } else {
-          statusEl.innerHTML = '<div class="status-row"><div class="dot orange"></div><span>WhatsApp Web is initializing...</span></div>';
-          document.getElementById('qr-section').style.display = 'none';
-        }
+        const data = await api('/api/status');
+        alert('connection-alert', '');
+        el('status-dot').className = 'dot' + (data.whatsappReady ? ' ready' : data.phase === 'error' ? ' error' : '');
+        const labels = {
+          ready: 'WhatsApp connected and ready',
+          authenticated: 'Authenticated — loading chats, please wait',
+          pairing: 'Waiting for your phone to finish linking',
+          qr: 'Waiting for QR scan or phone pairing',
+          starting: 'Starting WhatsApp Web',
+          error: data.connectionError || 'WhatsApp disconnected',
+        };
+        el('wa-status').textContent = labels[data.phase] || data.connectionError || 'Connecting...';
+        el('pairing-section').hidden = data.whatsappReady || data.authenticating;
+        el('today').textContent = data.today;
+        el('reminder-day').textContent = data.isReminderDay ? 'Yes' : 'No';
+        el('contacts').textContent = data.contactsConfigured + ' configured';
+        el('photos').textContent = data.photosAvailable + ' found (2 needed)';
+        el('send-time').textContent = data.sendTime + ' (' + data.timezone + ')';
+        el('todays-message').hidden = !data.todaysMessage;
+        el('todays-message').textContent = data.todaysMessage || '';
 
-        document.getElementById('info-today').textContent = data.today;
-        document.getElementById('info-reminder-day').textContent = data.isReminderDay ? 'Yes' : 'No';
-        document.getElementById('info-contacts').textContent = data.contactsConfigured + ' configured (Mom + 2 sons needed)';
-        document.getElementById('info-photos').textContent = data.photosAvailable + ' found (2 needed daily)';
-        document.getElementById('info-sendtime').textContent = data.sendTime + ' (' + data.timezone + ')';
-
-        const tmEl = document.getElementById('todays-message');
-        if (data.todaysMessage) {
-          tmEl.innerHTML = '<div class="info-item" style="margin-top:8px;"><div class="info-label">Today\'s Message</div><div class="info-value">' + escapeHtml(data.todaysMessage) + '</div></div>';
-        } else {
-          tmEl.innerHTML = '';
+        const request = ++qrRequest;
+        el('qr-section').hidden = true;
+        if (data.whatsappReady || data.authenticating) {
+          alert('pairing-result', '');
+        } else if (data.phase === 'pairing' && el('access-token').value.trim()) {
+          const pairing = await api('/api/pairing-code', { headers: accessHeaders() });
+          if (pairing.code) showCode(pairing.code);
+        } else if (data.hasQr && el('access-token').value.trim()) {
+          alert('pairing-result', '');
+          const image = await api('/api/qr', { headers: accessHeaders() });
+          if (request === qrRequest && image.qr) {
+            el('qr-image').src = image.qr;
+            el('qr-section').hidden = false;
+          }
         }
-      } catch (e) {
-        console.error('Refresh failed:', e);
+      } catch (error) {
+        el('status-dot').className = 'dot error';
+        el('wa-status').textContent = 'Cannot reach the service';
+        el('qr-section').hidden = true;
+        alert('pairing-result', 'Connection lost. Wait for the service to restart before using a pairing code.', true);
+        alert('connection-alert', error.message, true);
+      } finally {
+        polling = false;
       }
     }
 
-    async function loadQr(requestId) {
-      try {
-        const res = await fetch('/api/qr');
-        const data = await res.json();
-        if (requestId !== qrRequestId) return;
-        if (data.qr) {
-          document.getElementById('qr-img').src = data.qr;
-          document.getElementById('qr-section').style.display = 'block';
-        } else {
-          document.getElementById('qr-section').style.display = 'none';
-        }
-      } catch (e) {
-        console.error('QR load failed:', e);
-      }
-    }
-
-    async function requestPairingCode() {
-      const number = document.getElementById('pairing-number').value.trim();
-      const token = document.getElementById('pairing-token').value.trim();
-      const result = document.getElementById('pairing-result');
-      const button = document.getElementById('pairing-button');
-      if (!/^\d{8,15}$/.test(number) || !token) {
-        result.innerHTML = '<div class="alert error">Enter your number with country code (digits only) and your pairing token.</div>';
+    async function requestPairing() {
+      const phoneNumber = el('pairing-number').value.trim();
+      if (!/^\d{8,15}$/.test(phoneNumber) || !el('access-token').value.trim()) {
+        alert('pairing-result', 'Enter your number with country code (digits only) and the access token.', true);
         return;
       }
-      button.disabled = true;
-      result.textContent = 'Requesting a pairing code...';
+      el('pairing-button').disabled = true;
+      alert('pairing-result', 'Starting phone pairing; a code will appear shortly...');
       try {
-        const res = await fetch('/api/pairing-code', {
+        await api('/api/pairing-code', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Pairing-Token': token },
-          body: JSON.stringify({ phoneNumber: number })
+          headers: { 'Content-Type': 'application/json', ...accessHeaders() },
+          body: JSON.stringify({ phoneNumber }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Could not get a pairing code');
-        pairingActive = true;
-        showPairingCode(data.code);
-        refresh();
-      } catch (e) {
-        pairingActive = false;
-        result.innerHTML = '<div class="alert error">' + escapeHtml(e.message) + '</div>';
+        await refresh();
+      } catch (error) {
+        alert('pairing-result', error.message, true);
       } finally {
-        button.disabled = false;
+        el('pairing-button').disabled = false;
       }
     }
 
-    function showPairingCode(code) {
-      document.getElementById('pairing-result').innerHTML = '<div class="alert success">Enter this code on your phone: <span class="pairing-code">' + escapeHtml(code) + '</span><br />Keep this page open; the code updates automatically.</div>';
+    async function uploadPhotos() {
+      const files = Array.from(el('upload-files').files);
+      const token = el('upload-token').value.trim();
+      if (!token || !files.length) {
+        alert('upload-alert', 'Enter the photo upload token and choose photos.', true);
+        return;
+      }
+      el('upload-button').disabled = true;
+      let uploaded = 0;
+      try {
+        for (const file of files) {
+          alert('upload-alert', 'Uploading ' + (uploaded + 1) + ' of ' + files.length + '...');
+          await api('/api/photos', {
+            method: 'POST',
+            headers: { 'Content-Type': file.type, 'X-Photo-Token': token },
+            body: file,
+          });
+          uploaded++;
+        }
+        alert('upload-alert', 'Uploaded ' + uploaded + ' photo(s).');
+        el('upload-files').value = '';
+        await refresh();
+      } catch (error) {
+        alert('upload-alert', 'Uploaded ' + uploaded + ' photo(s). ' + error.message, true);
+      } finally {
+        el('upload-token').value = '';
+        el('upload-button').disabled = false;
+      }
     }
 
-    async function loadPairingCode() {
+    async function runReminder() {
       try {
-        const res = await fetch('/api/pairing-code', {
-          headers: { 'X-Pairing-Token': document.getElementById('pairing-token').value.trim() },
-          cache: 'no-store'
+        const data = await api('/api/run-reminder', { method: 'POST', headers: accessHeaders() });
+        const result = data.result;
+        alert('action-alert', result.skipped || ('Sent to ' + result.sent + ' contact(s); ' + result.failed + ' failed.'), !!result.failed);
+      } catch (error) {
+        alert('action-alert', error.message, true);
+      }
+    }
+
+    async function sendTest() {
+      try {
+        const number = el('test-number').value.trim();
+        const message = el('test-message').value.trim();
+        const data = await api('/api/test-send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...accessHeaders() },
+          body: JSON.stringify({ number, message }),
         });
-        const data = await res.json();
-        if (!pairingActive) return;
-        if (!res.ok) throw new Error(data.error || 'Could not refresh the pairing code');
-        if (data.code) showPairingCode(data.code);
-      } catch (e) {
-        if (pairingActive) {
-          document.getElementById('pairing-result').innerHTML = '<div class="alert error">' + escapeHtml(e.message) + '</div>';
-        }
+        const results = Array.isArray(data.result) ? data.result : [data.result];
+        const failed = results.filter((result) => !result.success).length;
+        alert('action-alert', 'Test sent to ' + (results.length - failed) + ' contact(s); ' + failed + ' failed.', !!failed);
+      } catch (error) {
+        alert('action-alert', error.message, true);
       }
     }
 
     async function loadMessages() {
       try {
-        const res = await fetch('/api/messages');
-        const list = await res.json();
-        const statusRes = await fetch('/api/status');
-        const status = await statusRes.json();
-        const todayKey = status.today;
-        const html = list.map(m =>
-          '<div class="message-item ' + (m.date === todayKey ? 'today' : '') + '">' +
-          '<div class="message-date">' + formatMonth(m.month) + ' ' + m.day + '</div>' +
-          '<div class="message-text">' + escapeHtml(m.text) + '</div></div>'
-        ).join('');
-        document.getElementById('message-list').innerHTML = html;
-      } catch (e) {
-        console.error('Message load failed:', e);
-      }
-    }
-
-    async function uploadPhotos() {
-      const tokenInput = document.getElementById('upload-token');
-      const fileInput = document.getElementById('upload-files');
-      const button = document.getElementById('upload-button');
-      const alertEl = document.getElementById('upload-alert');
-      const token = tokenInput.value.trim();
-      const files = Array.from(fileInput.files);
-      if (!token || files.length === 0) {
-        alertEl.innerHTML = '<div class="alert error">Enter your upload token and choose photos.</div>';
-        return;
-      }
-      button.disabled = true;
-      let uploaded = 0;
-      try {
-        for (const file of files) {
-          const type = file.type || (/\.png$/i.test(file.name) ? 'image/png' : 'image/jpeg');
-          alertEl.textContent = 'Uploading ' + (uploaded + 1) + ' of ' + files.length + '...';
-          const res = await fetch('/api/photos', {
-            method: 'POST',
-            headers: { 'Content-Type': type, 'X-Photo-Token': token },
-            body: file
-          });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(data.error || 'Upload failed (HTTP ' + res.status + ')');
-          uploaded++;
+        const list = await api('/api/messages');
+        const container = el('message-list');
+        container.replaceChildren();
+        for (const item of list) {
+          const box = document.createElement('div');
+          box.className = 'message' + (item.date === el('today').textContent ? ' today' : '');
+          const date = document.createElement('strong');
+          date.textContent = new Date(item.date + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+          const text = document.createElement('span');
+          text.textContent = item.text;
+          box.append(date, text);
+          container.append(box);
         }
-        alertEl.innerHTML = '<div class="alert success">Uploaded ' + uploaded + ' photo(s).</div>';
-        fileInput.value = '';
-        refresh();
-      } catch (e) {
-        alertEl.innerHTML = '<div class="alert error">Uploaded ' + uploaded + ' photo(s). ' + escapeHtml(e.message) + '</div>';
-      } finally {
-        tokenInput.value = '';
-        button.disabled = false;
+      } catch (error) {
+        el('message-list').textContent = error.message;
       }
     }
 
-    async function runReminder() {
-      const alertEl = document.getElementById('action-alert');
-      alertEl.innerHTML = '';
-      try {
-        const res = await fetch('/api/run-reminder', { method: 'POST' });
-        const data = await res.json();
-        if (data.success) {
-          alertEl.innerHTML = '<div class="alert success">Reminder triggered! Check server logs.</div>';
-        } else {
-          alertEl.innerHTML = '<div class="alert error">' + escapeHtml(data.error) + '</div>';
-        }
-      } catch (e) {
-        alertEl.innerHTML = '<div class="alert error">Request failed</div>';
-      }
-    }
-
-    async function sendTest() {
-      const number = document.getElementById('test-number').value.trim();
-      const message = document.getElementById('test-message').value.trim();
-      const alertEl = document.getElementById('action-alert');
-      alertEl.innerHTML = '';
-      try {
-        const body = {};
-        if (number) body.number = number;
-        if (message) body.message = message;
-        const res = await fetch('/api/test-send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        const data = await res.json();
-        if (data.success) {
-          alertEl.innerHTML = '<div class="alert success">Test message sent!</div>';
-        } else {
-          alertEl.innerHTML = '<div class="alert error">' + escapeHtml(data.error) + '</div>';
-        }
-      } catch (e) {
-        alertEl.innerHTML = '<div class="alert error">Request failed</div>';
-      }
-    }
-
-    function formatMonth(m) {
-      const names = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      return names[m] || m;
-    }
-
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
-
-    refresh();
-    loadMessages();
+    el('pairing-button').addEventListener('click', requestPairing);
+    el('upload-button').addEventListener('click', uploadPhotos);
+    el('reminder-button').addEventListener('click', runReminder);
+    el('refresh-button').addEventListener('click', refresh);
+    el('test-button').addEventListener('click', sendTest);
+    el('access-token').addEventListener('change', refresh);
+    refresh().then(loadMessages);
     setInterval(refresh, 10000);
   </script>
 </body>

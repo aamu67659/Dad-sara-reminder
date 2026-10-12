@@ -1,14 +1,35 @@
-const { getClient } = require("./whatsapp");
-const { start: startScheduler } = require("./scheduler");
-const { start: startServer } = require("./server");
+const whatsapp = require("./whatsapp");
+const scheduler = require("./scheduler");
+const server = require("./server");
 const { contacts, port } = require("./config");
+
+process.on("uncaughtExceptionMonitor", (error) => {
+  console.error("[Process] Fatal error:", error);
+});
+process.on("unhandledRejection", (error) => {
+  console.error("[Process] Unhandled rejection:", error);
+  whatsapp.recover(error);
+});
 
 console.log("=== Mom's Birthday Reminder ===");
 console.log(`Contacts configured: ${contacts.length}`);
 console.log(`Dashboard port: ${port}`);
 
-getClient();
+const httpServer = server.start();
+scheduler.start();
+whatsapp.start();
 
-startScheduler();
+async function shutdown() {
+  scheduler.stop();
+  const deadline = setTimeout(() => process.exit(1), 10000);
+  deadline.unref();
+  try {
+    await whatsapp.stop();
+    await new Promise((resolve) => httpServer.close(resolve));
+  } finally {
+    clearTimeout(deadline);
+  }
+}
 
-startServer();
+process.once("SIGTERM", shutdown);
+process.once("SIGINT", shutdown);

@@ -74,6 +74,26 @@ test("dashboard upload script parses", () => {
   assert.doesNotThrow(() => new vm.Script(script[1]));
 });
 
+test("dashboard reports an HTML gateway error instead of parsing it as JSON", async () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+  const elements = new Map();
+  const document = {
+    getElementById(id) {
+      if (!elements.has(id)) elements.set(id, { value: "", hidden: false, addEventListener() {} });
+      return elements.get(id);
+    },
+  };
+  vm.runInNewContext(script, {
+    document,
+    fetch: async () => ({ status: 502, headers: { get: () => "text/html" } }),
+    setInterval() {},
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.match(elements.get("connection-alert").textContent, /HTTP 502/);
+  assert.equal(elements.get("wa-status").textContent, "Cannot reach the service");
+});
+
 test("photo uploads require a token and save only valid images", async (t) => {
   const previousToken = process.env.PHOTO_UPLOAD_TOKEN;
   t.after(() => {
@@ -138,7 +158,75 @@ test("phone pairing requires a token and validates the number", async (t) => {
   });
   assert.equal(codeStatus.status, 200);
   assert.equal(codeStatus.headers.get("cache-control"), "no-store");
-  assert.deepEqual(await codeStatus.json(), { code: null, ready: false, authenticating: false });
+  assert.deepEqual(await codeStatus.json(), { code: null, phase: "starting", ready: false, connectionError: null });
   const status = await (await fetch(`${url}/api/status`)).json();
   assert.equal(Object.hasOwn(status, "pairingCode"), false);
+  assert.equal(Object.hasOwn(status, "contacts"), false);
+  assert.equal((await fetch(`${url}/api/qr`)).status, 401);
+  assert.equal((await fetch(`${url}/api/test-send`, { method: "POST" })).status, 401);
+  assert.equal((await fetch(`${url}/api/run-reminder`, { method: "POST" })).status, 401);
+  const invalidSend = await fetch(`${url}/api/test-send`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Pairing-Token": process.env.PAIRING_TOKEN },
+    body: JSON.stringify({ number: 0 }),
+  });
+  assert.equal(invalidSend.status, 400);
+  const missingRoute = await fetch(`${url}/api/missing`);
+  assert.equal(missingRoute.status, 404);
+  assert.equal((await missingRoute.json()).error, "API route not found");
+  const invalidBody = await fetch(`${url}/api/pairing-code`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Pairing-Token": process.env.PAIRING_TOKEN },
+    body: "{",
+  });
+  assert.equal(invalidBody.status, 400);
+  assert.equal((await invalidBody.json()).error, "Invalid request body");
+});
+
+test("switches from QR to native phone pairing without keeping the old browser", async (t) => {
+  const { EventEmitter } = require("node:events");
+  const { WhatsAppService } = require("./whatsapp");
+  const instances = [];
+  class FakeClient extends EventEmitter {
+    constructor(options) {
+      super();
+      this.options = options;
+      this.destroyed = false;
+      instances.push(this);
+    }
+    async initialize() {
+      if (this.options.pairWithPhoneNumber) this.emit("code", "ABCDEFGH");
+      else this.emit("qr", "qr-data");
+    }
+    async destroy() { this.destroyed = true; }
+    async sendMessage(id, text) { this.lastMessage = { id, text }; }
+  }
+  class FakeAuth {}
+  const service = new WhatsAppService({ ClientClass: FakeClient, AuthClass: FakeAuth, startupMs: 5000, retryMs: 10 });
+  t.after(() => service.stop());
+  service.start();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(service.getStatus().phase, "qr");
+  assert.equal(service.getStatus().hasQr, true);
+  await service.requestPairingCode("2348012345678");
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(instances.length, 2);
+  assert.equal(instances[0].destroyed, true);
+  assert.equal(instances[1].options.pairWithPhoneNumber.phoneNumber, "2348012345678");
+  assert.equal(service.getStatus().pairingCode, "ABCDEFGH");
+  instances[0].emit("qr", "stale-qr");
+  assert.equal(service.getStatus().hasQr, false);
+  instances[1].emit("authenticated");
+  assert.equal(service.getStatus().pairingCode, null);
+  instances[1].emit("ready");
+  assert.equal(service.getStatus().ready, true);
+  await service.sendToSingle("2348012345678", "Hello");
+  assert.deepEqual(instances[1].lastMessage, { id: "2348012345678@c.us", text: "Hello" });
+  await assert.rejects(service.requestPairingCode("2348012345678"), /already linked/);
+  instances[1].emit("disconnected", "test");
+  assert.equal(service.getStatus().phase, "error");
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  assert.equal(instances[1].destroyed, true);
+  assert.equal(instances[2].options.pairWithPhoneNumber, undefined);
+  assert.equal(service.getStatus().phase, "qr");
 });

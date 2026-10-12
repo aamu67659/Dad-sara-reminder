@@ -5,35 +5,26 @@ const { sendTime, timezone, contacts } = require("./config");
 const { selectRandomPhotos } = require("./photos");
 
 let scheduledTask = null;
+let sending = false;
 
 async function runReminder() {
+  if (sending) throw new Error("A reminder is already being sent");
   const now = new Date();
-  if (!isReminderDay(now)) {
-    console.log(`[Scheduler] Today (${getDateKey(now)}) is not a reminder day. Skipping.`);
-    return;
-  }
-
+  if (!isReminderDay(now)) return { skipped: `Today (${getDateKey(now)}) is not a reminder day` };
   const message = getMessageForDate(now);
-  if (!message) {
-    console.log("[Scheduler] No message configured for today. Skipping.");
-    return;
-  }
+  if (!message) return { skipped: "No message is configured for today" };
+  if (!getStatus().ready) throw new Error("WhatsApp is not connected yet");
 
-  const { ready } = getStatus();
-  if (!ready) {
-    console.error("[Scheduler] WhatsApp is not connected. Cannot send reminders.");
-    return;
-  }
-
+  sending = true;
   try {
     const photos = selectRandomPhotos();
-    console.log(`[Scheduler] Sending reminder and two photos for ${getDateKey(now)}...`);
     const results = await sendToAll(message, photos);
-    const sent = results.filter((r) => r.success).length;
-    const failed = results.filter((r) => !r.success).length;
-    console.log(`[Scheduler] Done. Sent: ${sent}, Failed: ${failed}`);
-  } catch (err) {
-    console.error("[Scheduler] Error sending reminders:", err.message);
+    const sent = results.filter((result) => result.success).length;
+    const failed = results.length - sent;
+    console.log(`[Scheduler] ${getDateKey(now)}: sent ${sent}, failed ${failed}`);
+    return { sent, failed };
+  } finally {
+    sending = false;
   }
 }
 
@@ -50,7 +41,7 @@ function start() {
 
   scheduledTask = cron.schedule(
     cronExpression,
-    runReminder,
+    () => runReminder().catch((err) => console.error("[Scheduler] Reminder failed:", err)),
     { timezone }
   );
 

@@ -1,10 +1,14 @@
 require("dotenv").config();
 const path = require("path");
 
-const contacts = (process.env.FAMILY_CONTACTS || "")
+const configuredContacts = (process.env.FAMILY_CONTACTS || "")
   .split(",")
-  .map((c) => c.trim())
+  .map((number) => number.trim())
   .filter(Boolean);
+const contacts = configuredContacts.filter((number) => /^\d{8,15}$/.test(number));
+if (contacts.length !== configuredContacts.length) {
+  console.warn("[Config] Ignoring invalid family phone numbers; use country code and digits only");
+}
 
 const sendTime = process.env.SEND_TIME || "0 9";
 const timezone = process.env.TZ || "Africa/Lagos";
