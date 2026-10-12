@@ -23,6 +23,8 @@ app.get("/api/status", (req, res) => {
   const now = new Date();
   res.json({
     whatsappReady: status.ready,
+    authenticating: status.authenticating,
+    connectionError: status.connectionError,
     hasQr: status.hasQr,
     contacts,
     sendTime,

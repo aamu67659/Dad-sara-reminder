@@ -6,6 +6,7 @@ const events = new EventEmitter();
 let qrCode = null;
 let ready = false;
 let authenticating = false;
+let connectionError = null;
 let client = null;
 
 const authDataPath = process.env.AUTH_DATA_PATH
@@ -34,6 +35,7 @@ function getClient() {
       qrCode = qr;
       ready = false;
       authenticating = false;
+      connectionError = null;
       events.emit("qr", qr);
       console.log("[WhatsApp] QR code generated - scan it in the dashboard");
     });
@@ -41,6 +43,7 @@ function getClient() {
     client.on("ready", async () => {
       ready = true;
       authenticating = false;
+      connectionError = null;
       qrCode = null;
       events.emit("ready");
       console.log("[WhatsApp] Client is ready and connected");
@@ -54,6 +57,7 @@ function getClient() {
 
     client.on("authenticated", () => {
       authenticating = true;
+      connectionError = null;
       qrCode = null;
       events.emit("authenticated");
       console.log("[WhatsApp] Authenticated successfully - loading...");
@@ -61,6 +65,9 @@ function getClient() {
 
     client.on("auth_failure", (msg) => {
       ready = false;
+      authenticating = false;
+      qrCode = null;
+      connectionError = "WhatsApp authentication failed. Check server logs.";
       events.emit("auth_failure", msg);
       console.error("[WhatsApp] Authentication failure:", msg);
     });
@@ -69,6 +76,7 @@ function getClient() {
       ready = false;
       authenticating = false;
       qrCode = null;
+      connectionError = "WhatsApp disconnected. Reconnecting...";
       client = null;
       events.emit("disconnected", reason);
       console.log("[WhatsApp] Client disconnected:", reason, "- will reinitialize in 5s");
@@ -79,6 +87,7 @@ function getClient() {
       ready = false;
       authenticating = false;
       qrCode = null;
+      connectionError = "WhatsApp Web failed to start. Check server logs; retrying...";
       client = null;
       console.error("[WhatsApp] Browser failed to start:", err);
       setTimeout(() => getClient(), 30000);
@@ -124,7 +133,7 @@ async function sendToSingle(number, message) {
 }
 
 function getStatus() {
-  return { ready, authenticating, hasQr: !!qrCode, qrCode };
+  return { ready, authenticating, connectionError, hasQr: !!qrCode, qrCode };
 }
 
 function getEvents() {

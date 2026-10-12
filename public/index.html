@@ -159,11 +159,14 @@
   </div>
 
   <script>
+    let qrRequestId = 0;
+
     async function refresh() {
       try {
         const res = await fetch('/api/status');
         const data = await res.json();
         const statusEl = document.getElementById('wa-status');
+        const requestId = ++qrRequestId;
         if (data.whatsappReady) {
           statusEl.innerHTML = '<div class="status-row"><div class="dot green"></div><span>WhatsApp connected and ready</span></div>';
           document.getElementById('qr-section').style.display = 'none';
@@ -172,9 +175,12 @@
           document.getElementById('qr-section').style.display = 'none';
         } else if (data.hasQr) {
           statusEl.innerHTML = '<div class="status-row"><div class="dot orange"></div><span>Waiting for QR scan...</span></div>';
-          loadQr();
+          loadQr(requestId);
+        } else if (data.connectionError) {
+          statusEl.innerHTML = '<div class="status-row"><div class="dot red"></div><span>' + escapeHtml(data.connectionError) + '</span></div>';
+          document.getElementById('qr-section').style.display = 'none';
         } else {
-          statusEl.innerHTML = '<div class="status-row"><div class="dot red"></div><span>WhatsApp not connected - initializing...</span></div>';
+          statusEl.innerHTML = '<div class="status-row"><div class="dot orange"></div><span>WhatsApp Web is initializing...</span></div>';
           document.getElementById('qr-section').style.display = 'none';
         }
 
@@ -195,13 +201,16 @@
       }
     }
 
-    async function loadQr() {
+    async function loadQr(requestId) {
       try {
         const res = await fetch('/api/qr');
         const data = await res.json();
+        if (requestId !== qrRequestId) return;
         if (data.qr) {
           document.getElementById('qr-img').src = data.qr;
           document.getElementById('qr-section').style.display = 'block';
+        } else {
+          document.getElementById('qr-section').style.display = 'none';
         }
       } catch (e) {
         console.error('QR load failed:', e);

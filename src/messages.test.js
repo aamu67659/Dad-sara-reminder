@@ -103,5 +103,8 @@ test("photo uploads require a token and save only valid images", async (t) => {
   assert.equal((await result.json()).photosAvailable, 1);
   assert.equal(getPhotoFiles(uploadDirectory).length, 1);
   const status = await fetch(`${url}/api/status`);
-  assert.equal((await status.json()).photosAvailable, 1);
+  const data = await status.json();
+  assert.equal(data.photosAvailable, 1);
+  assert.equal(data.authenticating, false);
+  assert.equal(data.connectionError, null);
 });
