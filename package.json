@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node --test src/messages.test.js",
-    "postinstall": "npx puppeteer browsers install chrome"
+    "test": "node --test src/messages.test.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

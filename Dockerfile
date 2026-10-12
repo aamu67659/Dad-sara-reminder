@@ -2,6 +2,7 @@ FROM node:20-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
+    chromium \
     fonts-liberation \
     libasound2 \
     libatk-bridge2.0-0 \
@@ -33,15 +34,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-ENV PUPPETEER_CACHE_DIR=/opt/puppeteer-cache
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 COPY package.json package-lock.json ./
 RUN npm ci
-
-RUN CHROME_BIN=$(find /opt/puppeteer-cache -name "chrome" -type f -path "*/chrome-linux64/*" | head -1) && \
-    ln -sf "$CHROME_BIN" /usr/bin/google-chrome
-
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
 
 COPY . .
 

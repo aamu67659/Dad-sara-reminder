@@ -75,7 +75,14 @@ function getClient() {
       setTimeout(() => getClient(), 5000);
     });
 
-    client.initialize();
+    client.initialize().catch((err) => {
+      ready = false;
+      authenticating = false;
+      qrCode = null;
+      client = null;
+      console.error("[WhatsApp] Browser failed to start:", err);
+      setTimeout(() => getClient(), 30000);
+    });
   }
   return client;
 }
