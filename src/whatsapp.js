@@ -1,4 +1,4 @@
-const { Client, LocalAuth } = require("whatsapp-web.js");
+const { Client, LocalAuth, MessageMedia } = require("whatsapp-web.js");
 const EventEmitter = require("events");
 const path = require("path");
 
@@ -80,16 +80,25 @@ function getClient() {
   return client;
 }
 
-async function sendToAll(message) {
+async function sendToAll(message, photoPaths = []) {
   const { contacts } = require("./config");
   if (!ready) throw new Error("WhatsApp client is not ready yet");
   if (contacts.length === 0) throw new Error("No contacts configured");
+  if (photoPaths.length !== 0 && photoPaths.length !== 2) {
+    throw new Error("Exactly two photos must be provided");
+  }
+  const photos = photoPaths.map((photoPath) => MessageMedia.fromFilePath(photoPath));
 
   const results = [];
   for (const number of contacts) {
     const chatId = number.includes("@c.us") ? number : `${number}@c.us`;
     try {
-      await client.sendMessage(chatId, message);
+      if (photos.length) {
+        await client.sendMessage(chatId, photos[0], { caption: message });
+        await client.sendMessage(chatId, photos[1]);
+      } else {
+        await client.sendMessage(chatId, message);
+      }
       results.push({ number, success: true });
       console.log(`[WhatsApp] Message sent to ${number}`);
     } catch (err) {

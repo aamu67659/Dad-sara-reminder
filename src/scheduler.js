@@ -2,6 +2,7 @@ const cron = require("node-cron");
 const { sendToAll, getStatus } = require("./whatsapp");
 const { getDateKey, getMessageForDate, isReminderDay } = require("./messages");
 const { sendTime, timezone, contacts } = require("./config");
+const { selectRandomPhotos } = require("./photos");
 
 let scheduledTask = null;
 
@@ -24,9 +25,10 @@ async function runReminder() {
     return;
   }
 
-  console.log(`[Scheduler] Sending reminder for ${getDateKey(now)}...`);
   try {
-    const results = await sendToAll(message);
+    const photos = selectRandomPhotos();
+    console.log(`[Scheduler] Sending reminder and two photos for ${getDateKey(now)}...`);
+    const results = await sendToAll(message, photos);
     const sent = results.filter((r) => r.success).length;
     const failed = results.filter((r) => !r.success).length;
     console.log(`[Scheduler] Done. Sent: ${sent}, Failed: ${failed}`);

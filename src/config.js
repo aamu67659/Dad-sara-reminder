@@ -1,4 +1,5 @@
 require("dotenv").config();
+const path = require("path");
 
 const contacts = (process.env.FAMILY_CONTACTS || "")
   .split(",")
@@ -8,6 +9,9 @@ const contacts = (process.env.FAMILY_CONTACTS || "")
 const sendTime = process.env.SEND_TIME || "0 9";
 const timezone = process.env.TZ || "Africa/Lagos";
 const port = parseInt(process.env.PORT || "3000", 10);
+const photoDir = path.resolve(
+  process.env.PHOTO_DIR || path.join(process.env.AUTH_DATA_PATH || path.join(__dirname, ".."), "mom-photos")
+);
 
 const birthday = "2026-10-16";
 const reminderStart = "2026-10-12";
@@ -17,6 +21,7 @@ module.exports = {
   sendTime,
   timezone,
   port,
+  photoDir,
   birthday,
   reminderStart,
 };

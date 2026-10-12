@@ -5,6 +5,7 @@ const { getStatus, sendToAll, sendToSingle, getEvents } = require("./whatsapp");
 const { runReminder } = require("./scheduler");
 const { contacts, sendTime, timezone, port } = require("./config");
 const { getDateKey, getMessageForDate, isReminderDay, messages } = require("./messages");
+const { getPhotoFiles } = require("./photos");
 
 const app = express();
 app.use(express.json());
@@ -28,6 +29,7 @@ app.get("/api/status", (req, res) => {
     isReminderDay: isReminderDay(now),
     todaysMessage: getMessageForDate(now),
     contactsConfigured: contacts.length,
+    photosAvailable: getPhotoFiles().length,
   });
 });
 

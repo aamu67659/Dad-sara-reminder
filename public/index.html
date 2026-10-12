@@ -118,6 +118,7 @@
         <div class="info-item"><div class="info-label">Today</div><div class="info-value" id="info-today">-</div></div>
         <div class="info-item"><div class="info-label">Reminder Day?</div><div class="info-value" id="info-reminder-day">-</div></div>
         <div class="info-item"><div class="info-label">Contacts</div><div class="info-value" id="info-contacts">-</div></div>
+        <div class="info-item"><div class="info-label">Photos Available</div><div class="info-value" id="info-photos">-</div></div>
         <div class="info-item"><div class="info-label">Send Time</div><div class="info-value" id="info-sendtime">-</div></div>
       </div>
       <div id="todays-message" style="margin-top:12px;"></div>
@@ -169,6 +170,7 @@
         document.getElementById('info-today').textContent = data.today;
         document.getElementById('info-reminder-day').textContent = data.isReminderDay ? 'Yes' : 'No';
         document.getElementById('info-contacts').textContent = data.contactsConfigured + ' configured (Mom + 2 sons needed)';
+        document.getElementById('info-photos').textContent = data.photosAvailable + ' found (2 needed daily)';
         document.getElementById('info-sendtime').textContent = data.sendTime + ' (' + data.timezone + ')';
 
         const tmEl = document.getElementById('todays-message');
