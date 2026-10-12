@@ -103,7 +103,7 @@
       <h2>Birthday Countdown (Oct 12–16, 2026)</h2>
       <div id="message-list">Loading messages...</div>
     </section>
-    <p class="help" style="text-align:center;">Dashboard refreshes every 10 seconds</p>
+    <p class="help" style="text-align:center;">Dashboard refreshes every 60 seconds</p>
   </main>
   <script>
     const el = (id) => document.getElementById(id);
@@ -301,7 +301,7 @@
     el('test-button').addEventListener('click', sendTest);
     el('access-token').addEventListener('change', refresh);
     refresh().then(loadMessages);
-    setInterval(refresh, 10000);
+    setInterval(refresh, 60000);
   </script>
 </body>
 </html>
