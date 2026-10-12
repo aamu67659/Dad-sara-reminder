@@ -22,3 +22,5 @@ services:
         sync: false
       - key: PHOTO_UPLOAD_TOKEN
         sync: false
+      - key: PAIRING_TOKEN
+        sync: false

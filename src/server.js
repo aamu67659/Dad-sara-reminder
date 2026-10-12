@@ -3,7 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const { randomUUID, timingSafeEqual } = require("crypto");
 const QRCode = require("qrcode");
-const { getStatus, sendToAll, sendToSingle, getEvents } = require("./whatsapp");
+const { getStatus, sendToAll, sendToSingle, requestPairingCode } = require("./whatsapp");
 const { runReminder } = require("./scheduler");
 const { contacts, sendTime, timezone, port, photoDir } = require("./config");
 const { getDateKey, getMessageForDate, isReminderDay, messages } = require("./messages");
@@ -48,6 +48,39 @@ app.get("/api/qr", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to generate QR image" });
   }
+});
+
+function requirePairingToken(req, res, next) {
+  const token = process.env.PAIRING_TOKEN;
+  if (!token || token.length < 16) {
+    return res.status(503).json({ error: "Set PAIRING_TOKEN in Render to enable phone pairing" });
+  }
+  const provided = Buffer.from(req.get("X-Pairing-Token") || "");
+  const expected = Buffer.from(token);
+  if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) {
+    return res.status(401).json({ error: "Invalid pairing token" });
+  }
+  res.set("Cache-Control", "no-store");
+  next();
+}
+
+app.post("/api/pairing-code", requirePairingToken, async (req, res) => {
+  const phoneNumber = req.body?.phoneNumber;
+  if (typeof phoneNumber !== "string" || !/^\d{8,15}$/.test(phoneNumber)) {
+    return res.status(400).json({ error: "Enter your WhatsApp number with country code, digits only" });
+  }
+  try {
+    const code = await requestPairingCode(phoneNumber);
+    res.json({ code });
+  } catch (err) {
+    console.error("[WhatsApp] Could not generate pairing code:", err);
+    res.status(503).json({ error: "Could not generate a pairing code. Check server logs and try again." });
+  }
+});
+
+app.get("/api/pairing-code", requirePairingToken, (req, res) => {
+  const { pairingCode, ready, authenticating } = getStatus();
+  res.json({ code: pairingCode, ready, authenticating });
 });
 
 app.get("/api/messages", (req, res) => {

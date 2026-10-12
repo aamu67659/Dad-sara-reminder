@@ -88,6 +88,7 @@
     .alert.success { background: #0d3320; color: #2ecc71; }
     .alert.error { background: #330d0d; color: #e74c3c; }
     .refresh-note { text-align: center; color: #666; font-size: 0.8rem; margin-top: 20px; }
+    .pairing-code { font-size: 1.5rem; letter-spacing: 0.2em; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -109,6 +110,14 @@
           Open WhatsApp on your phone > Settings > Linked Devices > Link a Device<br />
           Then scan this QR code. The session will stay connected after that.
         </div>
+      </div>
+      <div id="pairing-section" class="test-section">
+        <h2 style="font-size:1rem; color:#e94560; margin-bottom:8px;">Link without a QR code</h2>
+        <input type="tel" id="pairing-number" placeholder="WhatsApp number with country code (digits only)" autocomplete="tel" />
+        <input type="password" id="pairing-token" placeholder="Pairing token from Render settings" autocomplete="off" />
+        <button class="btn secondary" id="pairing-button" onclick="requestPairingCode()">Get Pairing Code</button>
+        <div id="pairing-result" role="status" aria-live="polite"></div>
+        <p class="qr-instructions">On your phone, open WhatsApp > Linked devices > Link a device > Link with phone number instead, then enter the code shown here.</p>
       </div>
     </div>
 
@@ -160,6 +169,7 @@
 
   <script>
     let qrRequestId = 0;
+    let pairingActive = false;
 
     async function refresh() {
       try {
@@ -167,18 +177,31 @@
         const data = await res.json();
         const statusEl = document.getElementById('wa-status');
         const requestId = ++qrRequestId;
+        document.getElementById('pairing-section').style.display = data.whatsappReady || data.authenticating ? 'none' : 'block';
         if (data.whatsappReady) {
+          pairingActive = false;
+          document.getElementById('pairing-result').textContent = '';
+          document.getElementById('pairing-token').value = '';
           statusEl.innerHTML = '<div class="status-row"><div class="dot green"></div><span>WhatsApp connected and ready</span></div>';
           document.getElementById('qr-section').style.display = 'none';
         } else if (data.authenticating) {
+          pairingActive = false;
+          document.getElementById('pairing-result').textContent = '';
+          document.getElementById('pairing-token').value = '';
           statusEl.innerHTML = '<div class="status-row"><div class="dot orange"></div><span>Authenticated - loading WhatsApp Web, please wait...</span></div>';
           document.getElementById('qr-section').style.display = 'none';
-        } else if (data.hasQr) {
-          statusEl.innerHTML = '<div class="status-row"><div class="dot orange"></div><span>Waiting for QR scan...</span></div>';
-          loadQr(requestId);
-        } else if (data.connectionError) {
+        } else if (data.connectionError && !data.hasQr) {
+          pairingActive = false;
+          document.getElementById('pairing-result').textContent = '';
           statusEl.innerHTML = '<div class="status-row"><div class="dot red"></div><span>' + escapeHtml(data.connectionError) + '</span></div>';
           document.getElementById('qr-section').style.display = 'none';
+        } else if (pairingActive) {
+          statusEl.innerHTML = '<div class="status-row"><div class="dot orange"></div><span>Waiting for phone pairing...</span></div>';
+          document.getElementById('qr-section').style.display = 'none';
+          loadPairingCode();
+        } else if (data.hasQr) {
+          statusEl.innerHTML = '<div class="status-row"><div class="dot orange"></div><span>Waiting for QR scan or phone pairing...</span></div>';
+          loadQr(requestId);
         } else {
           statusEl.innerHTML = '<div class="status-row"><div class="dot orange"></div><span>WhatsApp Web is initializing...</span></div>';
           document.getElementById('qr-section').style.display = 'none';
@@ -214,6 +237,57 @@
         }
       } catch (e) {
         console.error('QR load failed:', e);
+      }
+    }
+
+    async function requestPairingCode() {
+      const number = document.getElementById('pairing-number').value.trim();
+      const token = document.getElementById('pairing-token').value.trim();
+      const result = document.getElementById('pairing-result');
+      const button = document.getElementById('pairing-button');
+      if (!/^\d{8,15}$/.test(number) || !token) {
+        result.innerHTML = '<div class="alert error">Enter your number with country code (digits only) and your pairing token.</div>';
+        return;
+      }
+      button.disabled = true;
+      result.textContent = 'Requesting a pairing code...';
+      try {
+        const res = await fetch('/api/pairing-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Pairing-Token': token },
+          body: JSON.stringify({ phoneNumber: number })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not get a pairing code');
+        pairingActive = true;
+        showPairingCode(data.code);
+        refresh();
+      } catch (e) {
+        pairingActive = false;
+        result.innerHTML = '<div class="alert error">' + escapeHtml(e.message) + '</div>';
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    function showPairingCode(code) {
+      document.getElementById('pairing-result').innerHTML = '<div class="alert success">Enter this code on your phone: <span class="pairing-code">' + escapeHtml(code) + '</span><br />Keep this page open; the code updates automatically.</div>';
+    }
+
+    async function loadPairingCode() {
+      try {
+        const res = await fetch('/api/pairing-code', {
+          headers: { 'X-Pairing-Token': document.getElementById('pairing-token').value.trim() },
+          cache: 'no-store'
+        });
+        const data = await res.json();
+        if (!pairingActive) return;
+        if (!res.ok) throw new Error(data.error || 'Could not refresh the pairing code');
+        if (data.code) showPairingCode(data.code);
+      } catch (e) {
+        if (pairingActive) {
+          document.getElementById('pairing-result').innerHTML = '<div class="alert error">' + escapeHtml(e.message) + '</div>';
+        }
       }
     }
 

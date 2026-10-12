@@ -108,3 +108,37 @@ test("photo uploads require a token and save only valid images", async (t) => {
   assert.equal(data.authenticating, false);
   assert.equal(data.connectionError, null);
 });
+
+test("phone pairing requires a token and validates the number", async (t) => {
+  const previousToken = process.env.PAIRING_TOKEN;
+  t.after(() => {
+    if (previousToken === undefined) delete process.env.PAIRING_TOKEN;
+    else process.env.PAIRING_TOKEN = previousToken;
+  });
+  const server = require("./server").app.listen(0, "127.0.0.1");
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+  await once(server, "listening");
+  const url = `http://127.0.0.1:${server.address().port}`;
+  const send = (number, token) => fetch(`${url}/api/pairing-code`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(token ? { "X-Pairing-Token": token } : {}) },
+    body: JSON.stringify({ phoneNumber: number }),
+  });
+
+  delete process.env.PAIRING_TOKEN;
+  assert.equal((await send("2348012345678")).status, 503);
+  process.env.PAIRING_TOKEN = "long-test-token-for-pairing";
+  assert.equal((await send("2348012345678")).status, 401);
+  assert.equal((await send("2348012345678", "incorrect-token-value")).status, 401);
+  assert.equal((await fetch(`${url}/api/pairing-code`)).status, 401);
+  assert.equal((await send("+2348012345678", process.env.PAIRING_TOKEN)).status, 400);
+  assert.equal((await send("1234567", process.env.PAIRING_TOKEN)).status, 400);
+  const codeStatus = await fetch(`${url}/api/pairing-code`, {
+    headers: { "X-Pairing-Token": process.env.PAIRING_TOKEN },
+  });
+  assert.equal(codeStatus.status, 200);
+  assert.equal(codeStatus.headers.get("cache-control"), "no-store");
+  assert.deepEqual(await codeStatus.json(), { code: null, ready: false, authenticating: false });
+  const status = await (await fetch(`${url}/api/status`)).json();
+  assert.equal(Object.hasOwn(status, "pairingCode"), false);
+});

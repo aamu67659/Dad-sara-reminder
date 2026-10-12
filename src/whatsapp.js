@@ -4,6 +4,7 @@ const path = require("path");
 
 const events = new EventEmitter();
 let qrCode = null;
+let pairingCode = null;
 let ready = false;
 let authenticating = false;
 let connectionError = null;
@@ -40,8 +41,15 @@ function getClient() {
       console.log("[WhatsApp] QR code generated - scan it in the dashboard");
     });
 
+    client.on("code", (code) => {
+      pairingCode = code;
+      events.emit("code", code);
+      console.log("[WhatsApp] Phone pairing code generated");
+    });
+
     client.on("ready", async () => {
       ready = true;
+      pairingCode = null;
       authenticating = false;
       connectionError = null;
       qrCode = null;
@@ -56,6 +64,7 @@ function getClient() {
     });
 
     client.on("authenticated", () => {
+      pairingCode = null;
       authenticating = true;
       connectionError = null;
       qrCode = null;
@@ -64,6 +73,7 @@ function getClient() {
     });
 
     client.on("auth_failure", (msg) => {
+      pairingCode = null;
       ready = false;
       authenticating = false;
       qrCode = null;
@@ -73,6 +83,7 @@ function getClient() {
     });
 
     client.on("disconnected", (reason) => {
+      pairingCode = null;
       ready = false;
       authenticating = false;
       qrCode = null;
@@ -84,6 +95,7 @@ function getClient() {
     });
 
     client.initialize().catch((err) => {
+      pairingCode = null;
       ready = false;
       authenticating = false;
       qrCode = null;
@@ -132,8 +144,21 @@ async function sendToSingle(number, message) {
   return { number, success: true };
 }
 
+async function requestPairingCode(phoneNumber) {
+  if (ready || authenticating) throw new Error("WhatsApp is already linked");
+  if (!client || !qrCode) throw new Error("WhatsApp Web is still initializing. Try again shortly.");
+  pairingCode = null;
+  const currentClient = client;
+  const code = await currentClient.requestPairingCode(phoneNumber);
+  if (client !== currentClient || ready || authenticating) {
+    throw new Error("WhatsApp session changed. Refresh and try again.");
+  }
+  pairingCode = code;
+  return code;
+}
+
 function getStatus() {
-  return { ready, authenticating, connectionError, hasQr: !!qrCode, qrCode };
+  return { ready, authenticating, connectionError, hasQr: !!qrCode, qrCode, pairingCode };
 }
 
 function getEvents() {
@@ -144,6 +169,7 @@ module.exports = {
   getClient,
   sendToAll,
   sendToSingle,
+  requestPairingCode,
   getStatus,
   getEvents,
 };
