@@ -20,3 +20,5 @@ services:
         value: 0 9
       - key: FAMILY_CONTACTS
         sync: false
+      - key: PHOTO_UPLOAD_TOKEN
+        sync: false

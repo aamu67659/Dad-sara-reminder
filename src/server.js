@@ -1,9 +1,11 @@
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
+const { randomUUID, timingSafeEqual } = require("crypto");
 const QRCode = require("qrcode");
 const { getStatus, sendToAll, sendToSingle, getEvents } = require("./whatsapp");
 const { runReminder } = require("./scheduler");
-const { contacts, sendTime, timezone, port } = require("./config");
+const { contacts, sendTime, timezone, port, photoDir } = require("./config");
 const { getDateKey, getMessageForDate, isReminderDay, messages } = require("./messages");
 const { getPhotoFiles } = require("./photos");
 
@@ -54,6 +56,39 @@ app.get("/api/messages", (req, res) => {
   res.json(list);
 });
 
+app.post("/api/photos", (req, res, next) => {
+  const token = process.env.PHOTO_UPLOAD_TOKEN;
+  if (!token || token.length < 16) {
+    return res.status(503).json({ error: "Set PHOTO_UPLOAD_TOKEN in Render to enable uploads" });
+  }
+  const provided = Buffer.from(req.get("X-Photo-Token") || "");
+  const expected = Buffer.from(token);
+  if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) {
+    return res.status(401).json({ error: "Invalid upload token" });
+  }
+  next();
+}, express.raw({ type: ["image/jpeg", "image/png"], limit: "10mb" }), (req, res) => {
+  const image = req.body;
+  const isJpeg = req.is("image/jpeg") && Buffer.isBuffer(image) &&
+    image.length >= 3 && image[0] === 0xff && image[1] === 0xd8 && image[2] === 0xff;
+  const isPng = req.is("image/png") && Buffer.isBuffer(image) &&
+    image.length >= 8 && image.subarray(0, 8).equals(Buffer.from("89504e470d0a1a0a", "hex"));
+  if (!isJpeg && !isPng) {
+    return res.status(415).json({ error: "Upload a JPG or PNG photo" });
+  }
+  try {
+    fs.mkdirSync(photoDir, { recursive: true, mode: 0o700 });
+    fs.writeFileSync(path.join(photoDir, `${randomUUID()}.${isJpeg ? "jpg" : "png"}`), image, {
+      flag: "wx",
+      mode: 0o600,
+    });
+    res.json({ success: true, photosAvailable: getPhotoFiles().length });
+  } catch (err) {
+    console.error("[Photos] Upload failed:", err);
+    res.status(500).json({ error: "Could not save photo" });
+  }
+});
+
 app.post("/api/test-send", async (req, res) => {
   const { number, message } = req.body;
   const text = message || "Test message from Mom's Birthday Reminder app.";
@@ -85,4 +120,4 @@ function start() {
   });
 }
 
-module.exports = { start };
+module.exports = { start, app };

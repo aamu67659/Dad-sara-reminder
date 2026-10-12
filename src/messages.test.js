@@ -3,8 +3,13 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const { once } = require("node:events");
+const vm = require("node:vm");
 
 process.env.TZ = "Africa/Lagos";
+const uploadDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "mom-uploads-"));
+process.env.PHOTO_DIR = uploadDirectory;
+test.after(() => fs.rmSync(uploadDirectory, { recursive: true, force: true }));
 const { messages, getDateKey, getMessageForDate, isReminderDay } = require("./messages");
 const { getPhotoFiles, selectRandomPhotos } = require("./photos");
 
@@ -60,4 +65,43 @@ test("does not select photos if fewer than two are available", (t) => {
   fs.writeFileSync(path.join(directory, "mom.jpg"), "test");
   assert.throws(() => selectRandomPhotos(directory), /At least two/);
   assert.equal(getPhotoFiles(path.join(directory, "missing")).length, 0);
+});
+
+test("dashboard upload script parses", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
+  const script = html.match(/<script>([\s\S]*?)<\/script>/);
+  assert.ok(script);
+  assert.doesNotThrow(() => new vm.Script(script[1]));
+});
+
+test("photo uploads require a token and save only valid images", async (t) => {
+  const previousToken = process.env.PHOTO_UPLOAD_TOKEN;
+  t.after(() => {
+    if (previousToken === undefined) delete process.env.PHOTO_UPLOAD_TOKEN;
+    else process.env.PHOTO_UPLOAD_TOKEN = previousToken;
+  });
+  const server = require("./server").app.listen(0, "127.0.0.1");
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+  await once(server, "listening");
+  const url = `http://127.0.0.1:${server.address().port}`;
+  const image = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
+  const send = (body, token, type = "image/jpeg") => fetch(`${url}/api/photos`, {
+    method: "POST",
+    headers: { "Content-Type": type, ...(token ? { "X-Photo-Token": token } : {}) },
+    body,
+  });
+
+  delete process.env.PHOTO_UPLOAD_TOKEN;
+  assert.equal((await send(image)).status, 503);
+  process.env.PHOTO_UPLOAD_TOKEN = "long-test-token-for-uploads";
+  assert.equal((await send(image)).status, 401);
+  assert.equal((await send(image, "incorrect-token-value")).status, 401);
+  assert.equal((await send(Buffer.from("not an image"), process.env.PHOTO_UPLOAD_TOKEN)).status, 415);
+  assert.equal((await send(image, process.env.PHOTO_UPLOAD_TOKEN, "text/plain")).status, 415);
+  const result = await send(image, process.env.PHOTO_UPLOAD_TOKEN);
+  assert.equal(result.status, 200);
+  assert.equal((await result.json()).photosAvailable, 1);
+  assert.equal(getPhotoFiles(uploadDirectory).length, 1);
+  const status = await fetch(`${url}/api/status`);
+  assert.equal((await status.json()).photosAvailable, 1);
 });

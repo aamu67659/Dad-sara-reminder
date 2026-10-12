@@ -125,6 +125,17 @@
     </div>
 
     <div class="card">
+      <h2>Upload Mom's Photos</h2>
+      <p class="qr-instructions">Choose JPG or PNG photos. They stay on the private Render disk and are not shown publicly.</p>
+      <div class="test-section">
+        <input type="password" id="upload-token" placeholder="Photo upload token from Render settings" autocomplete="off" />
+        <input type="file" id="upload-files" accept="image/jpeg,image/png" multiple />
+        <button class="btn" id="upload-button" onclick="uploadPhotos()">Upload Photos</button>
+      </div>
+      <div id="upload-alert"></div>
+    </div>
+
+    <div class="card">
       <h2>Actions</h2>
       <div class="btn-row">
         <button class="btn" onclick="runReminder()">Run Today's Reminder Now</button>
@@ -212,6 +223,43 @@
         document.getElementById('message-list').innerHTML = html;
       } catch (e) {
         console.error('Message load failed:', e);
+      }
+    }
+
+    async function uploadPhotos() {
+      const tokenInput = document.getElementById('upload-token');
+      const fileInput = document.getElementById('upload-files');
+      const button = document.getElementById('upload-button');
+      const alertEl = document.getElementById('upload-alert');
+      const token = tokenInput.value.trim();
+      const files = Array.from(fileInput.files);
+      if (!token || files.length === 0) {
+        alertEl.innerHTML = '<div class="alert error">Enter your upload token and choose photos.</div>';
+        return;
+      }
+      button.disabled = true;
+      let uploaded = 0;
+      try {
+        for (const file of files) {
+          const type = file.type || (/\.png$/i.test(file.name) ? 'image/png' : 'image/jpeg');
+          alertEl.textContent = 'Uploading ' + (uploaded + 1) + ' of ' + files.length + '...';
+          const res = await fetch('/api/photos', {
+            method: 'POST',
+            headers: { 'Content-Type': type, 'X-Photo-Token': token },
+            body: file
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || 'Upload failed (HTTP ' + res.status + ')');
+          uploaded++;
+        }
+        alertEl.innerHTML = '<div class="alert success">Uploaded ' + uploaded + ' photo(s).</div>';
+        fileInput.value = '';
+        refresh();
+      } catch (e) {
+        alertEl.innerHTML = '<div class="alert error">Uploaded ' + uploaded + ' photo(s). ' + escapeHtml(e.message) + '</div>';
+      } finally {
+        tokenInput.value = '';
+        button.disabled = false;
       }
     }
 
