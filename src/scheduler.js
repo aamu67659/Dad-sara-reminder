@@ -21,8 +21,9 @@ async function runReminder() {
     const results = await sendToAll(message, photos);
     const sent = results.filter((result) => result.success).length;
     const failed = results.length - sent;
-    console.log(`[Scheduler] ${getDateKey(now)}: sent ${sent}, failed ${failed}`);
-    return { sent, failed };
+    const photoFailed = results.filter((result) => result.photoError).length;
+    console.log(`[Scheduler] ${getDateKey(now)}: sent ${sent}, failed ${failed}, photos failed ${photoFailed}`);
+    return { sent, failed, photoFailed };
   } finally {
     sending = false;
   }

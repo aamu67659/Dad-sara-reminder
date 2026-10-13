@@ -230,3 +230,46 @@ test("switches from QR to native phone pairing without keeping the old browser",
   assert.equal(instances[2].options.pairWithPhoneNumber, undefined);
   assert.equal(service.getStatus().phase, "qr");
 });
+
+test("sends reminder text before photos and reports photo failures separately", async (t) => {
+  const { contacts } = require("./config");
+  const { WhatsAppService } = require("./whatsapp");
+  const previousContacts = [...contacts];
+  contacts.splice(0, contacts.length, "2348012345678");
+  t.after(() => contacts.splice(0, contacts.length, ...previousContacts));
+  t.mock.method(console, "error", () => {});
+  const photoOne = { name: "first" };
+  const photoTwo = { name: "second" };
+  const service = new WhatsAppService({ MediaClass: { fromFilePath: (file) => file === "first" ? photoOne : photoTwo } });
+  service.phase = "ready";
+  const sent = [];
+  service.client = {
+    async sendMessage(id, content) {
+      sent.push({ id, content });
+      if (content === photoOne) throw new Error("media failed");
+    },
+  };
+
+  assert.deepEqual(await service.sendToAll("Reminder", ["first", "second"]), [
+    { number: "2348012345678", success: true, photoError: "media failed" },
+  ]);
+  assert.deepEqual(sent.map(({ content }) => content), ["Reminder", photoOne]);
+  assert.ok(sent.every(({ id }) => id === "2348012345678@c.us"));
+
+  sent.length = 0;
+  service.client.sendMessage = async (id, content) => { sent.push({ id, content }); };
+  assert.deepEqual(await service.sendToAll("Reminder", ["first", "second"]), [
+    { number: "2348012345678", success: true },
+  ]);
+  assert.deepEqual(sent.map(({ content }) => content), ["Reminder", photoOne, photoTwo]);
+
+  sent.length = 0;
+  service.client.sendMessage = async (id, content) => {
+    sent.push({ id, content });
+    if (content === "Reminder") throw new Error("text failed");
+  };
+  assert.deepEqual(await service.sendToAll("Reminder", ["first", "second"]), [
+    { number: "2348012345678", success: false, error: "text failed" },
+  ]);
+  assert.deepEqual(sent.map(({ content }) => content), ["Reminder"]);
+});

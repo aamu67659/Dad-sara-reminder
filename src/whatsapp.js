@@ -215,18 +215,22 @@ class WhatsAppService {
     const photos = photoPaths.map((file) => this.MediaClass.fromFilePath(file));
     const results = [];
     for (const number of contacts) {
+      const chatId = `${number}@c.us`;
       try {
-        if (photos.length) {
-          await this.client.sendMessage(`${number}@c.us`, photos[0], { caption: message });
-          await this.client.sendMessage(`${number}@c.us`, photos[1]);
-        } else {
-          await this.client.sendMessage(`${number}@c.us`, message);
-        }
-        results.push({ number, success: true });
+        await this.client.sendMessage(chatId, message);
       } catch (err) {
         console.error("[WhatsApp] Message failed:", err);
         results.push({ number, success: false, error: err.message });
+        continue;
       }
+      let photoError;
+      try {
+        for (const photo of photos) await this.client.sendMessage(chatId, photo);
+      } catch (err) {
+        console.error("[WhatsApp] Photo failed:", err);
+        photoError = err.message;
+      }
+      results.push({ number, success: true, ...(photoError ? { photoError } : {}) });
     }
     return results;
   }
