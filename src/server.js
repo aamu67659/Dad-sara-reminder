@@ -119,7 +119,7 @@ app.post("/api/test-send", requireAccess, async (req, res) => {
   const hasNumber = number !== undefined && number !== "";
   const suppliedMessage = req.body?.message;
   const message = suppliedMessage === undefined || suppliedMessage === ""
-    ? "Test message from Mom's Birthday Reminder app."
+    ? "Test message from Mom's Anniversary Reminder app."
     : suppliedMessage;
   if ((hasNumber && (typeof number !== "string" || !/^\d{8,15}$/.test(number))) ||
     typeof message !== "string" || message.length > 1000) {

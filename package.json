@@ -1,7 +1,7 @@
 {
-  "name": "mom-birthday-reminder",
+  "name": "mom-anniversary-reminder",
   "version": "1.0.0",
-  "description": "WhatsApp birthday countdown messages for Mom, October 13–16, 2026",
+  "description": "WhatsApp reminders celebrating Mom's healthy life on October 16, 2026",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

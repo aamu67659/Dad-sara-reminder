@@ -11,7 +11,7 @@ process.on("unhandledRejection", (error) => {
   whatsapp.recover(error);
 });
 
-console.log("=== Mom's Birthday Reminder ===");
+console.log("=== Mom's Anniversary Reminder ===");
 console.log(`Contacts configured: ${contacts.length}`);
 console.log(`Dashboard port: ${port}`);
 

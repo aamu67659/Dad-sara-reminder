@@ -17,7 +17,7 @@ const photoDir = path.resolve(
   process.env.PHOTO_DIR || path.join(process.env.AUTH_DATA_PATH || path.join(__dirname, ".."), "mom-photos")
 );
 
-const birthday = "2026-10-16";
+const anniversary = "2026-10-16";
 const reminderStart = "2026-10-13";
 
 module.exports = {
@@ -26,6 +26,6 @@ module.exports = {
   timezone,
   port,
   photoDir,
-  birthday,
+  anniversary,
   reminderStart,
 };

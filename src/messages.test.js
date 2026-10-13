@@ -22,7 +22,15 @@ test("sends one message each day from October 13 through October 16, 2026", () =
   }
 });
 
-test("does not send before or after the birthday countdown", () => {
+test("celebrates Mum's healthy life at 71 without treating October 16 as her birthday", () => {
+  assert.match(messages["2026-10-16"], /anniversary/i);
+  assert.match(messages["2026-10-16"], /71/);
+  for (const message of Object.values(messages)) {
+    assert.doesNotMatch(message, /birthday|64th/i);
+  }
+});
+
+test("does not send before or after the anniversary countdown", () => {
   for (const date of ["2026-10-12T09:00:00Z", "2026-10-17T09:00:00Z", "2027-10-13T09:00:00Z"]) {
     assert.equal(isReminderDay(new Date(date)), false);
     assert.equal(getMessageForDate(new Date(date)), null);
@@ -41,7 +49,7 @@ test("uses the configured timezone at day boundaries", () => {
 test("server and scheduler modules load without starting WhatsApp", () => {
   assert.equal(typeof require("./server").start, "function");
   assert.equal(typeof require("./scheduler").start, "function");
-  assert.equal(require("./config").birthday, "2026-10-16");
+  assert.equal(require("./config").anniversary, "2026-10-16");
 });
 
 test("selects two different photos and ignores other files", (t) => {
