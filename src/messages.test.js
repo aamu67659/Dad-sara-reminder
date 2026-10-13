@@ -22,11 +22,13 @@ test("sends one message each day from October 13 through October 16, 2026", () =
   }
 });
 
-test("celebrates Mum's healthy life at 71 without treating October 16 as her birthday", () => {
-  assert.match(messages["2026-10-16"], /anniversary/i);
+test("celebrates Mum's 40 years at the bar without treating October 16 as her birthday", () => {
+  assert.match(messages["2026-10-16"], /40th anniversary at the bar/i);
+  assert.match(messages["2026-10-16"], /senior lawyer/i);
   assert.match(messages["2026-10-16"], /71/);
   for (const message of Object.values(messages)) {
-    assert.doesNotMatch(message, /birthday|64th/i);
+    assert.match(message, /40 years|40th anniversary/i);
+    assert.doesNotMatch(message, /birthday|64th|anniversary celebrating your healthy life/i);
   }
 });
 
