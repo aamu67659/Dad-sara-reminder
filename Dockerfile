@@ -38,6 +38,7 @@ ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 COPY package.json package-lock.json ./
+COPY src/patch-whatsapp-media.js src/patch-whatsapp-media.js
 RUN npm ci
 
 COPY . .

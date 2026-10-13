@@ -13,6 +13,18 @@ test.after(() => fs.rmSync(uploadDirectory, { recursive: true, force: true }));
 const { messages, getDateKey, getMessageForDate, isReminderDay } = require("./messages");
 const { getPhotoFiles, selectRandomPhotos } = require("./photos");
 
+test("patches the whatsapp-web.js media ID collision on install", () => {
+  const { patchSource } = require("./patch-whatsapp-media");
+  const original = "            ...extraOptions,\n        };\n\n        // Bot's won't reply if canonicalUrl is set (linking)";
+  const patched = patchSource(original);
+  assert.match(patched, /delete message\.__x_id;/);
+  assert.equal(patchSource(patched), patched);
+  assert.throws(() => patchSource("changed upstream code"), /review the media ID patch/);
+  const packageDirectory = path.dirname(require.resolve("whatsapp-web.js/package.json"));
+  const installed = fs.readFileSync(path.join(packageDirectory, "src", "util", "Injected", "Utils.js"), "utf8");
+  assert.match(installed, /delete message\.__x_id;/);
+});
+
 test("sends one message each day from October 13 through October 16, 2026", () => {
   assert.equal(Object.keys(messages).length, 4);
   for (let day = 13; day <= 16; day++) {
